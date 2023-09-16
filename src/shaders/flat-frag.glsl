@@ -33,25 +33,54 @@ float snoise(vec3 uv, float res)
 	return mix(r0, r1, f.z)*2.-1.;
 }
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord ) 
+float impulse(float k,float x){
+	float h = k*x;
+	return h*exp(1.f-h);
+}
+
+float parabola(float x, float k){
+	return pow(4.*x*(1.-x),k);
+}
+
+vec3 flame(in vec2 ndc_xy ) 
 {
-	//vec2 p = -.5 + fragCoord.xy / u_Dimensions.xy;
-  vec2 p = fs_Pos;
-	//p.x *= u_Dimensions.x/u_Dimensions.y;
+	vec2 p = ndc_xy;
+	p.x *= u_Dimensions.x/u_Dimensions.y;
 	
-	float color = 3.0 - (3.*length(2.*p));
-	
-	vec3 coord = vec3(atan(p.x,p.y)/6.2832+.5, length(p)*.4, .5);
-	
+	float radius = length(p)*1.;
+
+	//tool1
+	radius = smoothstep(0.2,1.0,radius);
+
+	float color  = 1.0 - 1.5*radius;
+
+	vec3 coord = vec3(atan(p.x,p.y)/6.2832, radius*2., .0);
+	vec3 shiftCoord = coord + vec3(0.,-u_time*0.05, 0.);
+	float anotherSnoise = snoise(coord + shiftCoord,15.) + 1.;
 	for(int i = 1; i <= 7; i++)
 	{
 		float power = pow(2.0, float(i));
-		color += (1.5 / power) * snoise(coord + vec3(0.,-u_time*.05, u_time*.01), power*16.);
+		color += (0.75 / power) * snoise(shiftCoord, power*25.);
 	}
-	fragColor = vec4( color, pow(max(color,0.),2.)*0.4, pow(max(color,0.),3.)*0.15 , 1.0);
+	//tool2
+	color = impulse(1.,color);
+	vec3 fragColor = clamp(vec3( color, pow(max(color,0.),2.)*0.4, pow(max(color,0.),3.)*0.15),vec3(0.),vec3(1.));
+  	fragColor*=fragColor;
+	return clamp(fragColor,vec3(0.),vec3(1.));
+}
+
+vec3 glow(in vec2 ndc_xy){
+	vec2 p = ndc_xy;
+	p.x *= (u_Dimensions.x/u_Dimensions.y);
+	float radius = length(p)*.5;
+	radius = clamp(radius+0.5,0.,1.);
+	//tool3
+	float color = floor(parabola(radius,0.6)*6.)/6.;
+	return vec3( 0.8, 0.65, 0.3 )*color;
 }
 
 void main() {
-  mainImage(out_Col,fs_Pos);
-  //out_Col = vec4(fs_Pos.x,0.,0., 1.0);
+  vec3 color = flame(fs_Pos);
+  color += glow(fs_Pos)*.4;
+  out_Col = vec4(color,1.);
 }

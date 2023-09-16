@@ -1,4 +1,4 @@
-import {vec3, vec4,mat4} from 'gl-matrix';
+import {vec2, vec3, vec4,mat4} from 'gl-matrix';
 const Stats = require('stats-js');
 import * as DAT from 'dat.gui';
 import Icosphere from './geometry/Icosphere';
@@ -94,6 +94,7 @@ function main() {
   worley.addUnif("u_time");
   lambert.addUnif("u_time");
   bgRender.addUnif("u_time");
+  bgRender.addUnif("u_Dimensions");
 
 
   // This function will be called every frame
@@ -117,6 +118,7 @@ function main() {
     worley.setUnifFloat("u_time",time);
     lambert.setUnifFloat("u_time",time);
     bgRender.setUnifFloat("u_time",time);
+    bgRender.setUnifVec2("u_Dimensions",vec2.fromValues(window.innerWidth,window.innerHeight));
     let model = mat4.create();
     mat4.identity(model);
     model[0] = 0.6;
