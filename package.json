@@ -1,7 +1,8 @@
 {
   "scripts": {
     "start": "webpack-dev-server --no-hot --live-reload",
-    "build": "webpack"
+    "build": "webpack",
+    "deploy":"gh-pages -d build"
   },
   "devDependencies": {
     "@types/dat.gui": "^0.7.7",
