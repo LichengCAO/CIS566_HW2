@@ -1,10 +1,8 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
 ## Result
-
-![lavaball](https://github.com/LichengCAO/CIS566_HW2/assets/81556019/5cb776ba-f088-4130-8965-c981aa71dea0)
-
-  live demo: https://lichengcao.github.io/CIS566_HW2/
+![lavaball2](https://github.com/LichengCAO/CIS566_HW2/assets/81556019/148627ac-63b7-4213-8481-b9c5e5331f17)
+* live demo: https://lichengcao.github.io/CIS566_HW2/
 
 ## Objective
 
