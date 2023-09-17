@@ -15,6 +15,7 @@ uniform vec4 u_Color; // The color with which to render this instance of geometr
 uniform vec4 u_Color2;
 uniform float u_time;
 uniform mat4 u_Model;
+
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
 in vec4 fs_Nor;
@@ -86,7 +87,7 @@ void main()
 
 
         // Compute final shaded color
-        float u = 0.8*(fs_Bump-0.1) - fbm3d(fs_Nor.xyz);
+        float u = clamp(0.8*(fs_Bump-0.1) - fbm3d(fs_Nor.xyz),0.,1.);
         vec3 color = mix(diffuseColor.rgb,u_Color2.xyz,u);
         color = floor(color * 4.f)/3.;
         out_Col = vec4(color, 1.f);

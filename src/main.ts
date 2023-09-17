@@ -50,8 +50,33 @@ function loadGUI(){
     gui.addColor(controls,"GUIcolor2").name("mix color").onChange((value)=>{
       color2 = vec4.fromValues(value[0]/255.0,value[1]/255.0,value[2]/255.0,1);
     });
-    gui.add(controls,"Float0",0.0,1.0).step(0.1);
-    gui.add(controls,"Float1",0.0,1.0).step(0.1);
+    gui.add(controls,"Float0",0.0,1.0).name("high freq");
+    gui.add(controls,"Float1",0.0,1.0).name("low freq");
+
+    var resetSliders = function (name:string,val:any) {
+      for (var i = 0; i < gui.__controllers.length; i++) {
+          if (gui.__controllers[i].property==name){
+             gui.__controllers[i].setValue(val);
+          }   
+      }
+    };
+
+    var obj = {
+      add: function() {
+        controls.tesselations = 5;
+        color = vec4.fromValues(219/255., 85/255., 21/255.,1);
+        color2 = vec4.fromValues(0, 0, 0,1);
+        controls.Float0 = 0.5;
+        controls.Float1 = 0.5;
+        resetSliders("tesselations",5);
+        resetSliders("Float0",.5);
+        resetSliders("Float1",.5);
+        resetSliders("GUIcolor2",[0, 0, 0,1]);
+        resetSliders("GUIcolor",[219, 85, 21,1]);
+      }
+    };
+
+    gui.add(obj, "add").name("reset");
 }
 
 function main() {
