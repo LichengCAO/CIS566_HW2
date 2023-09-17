@@ -1,5 +1,10 @@
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
+## Result
+
+![lavaball](https://github.com/LichengCAO/CIS566_HW2/assets/81556019/ffb28235-abbb-4389-ab05-d486d4a1a356)
+live demo: https://lichengcao.github.io/CIS566_HW2/
+
 ## Objective
 
 Get comfortable with using WebGL and its shaders to generate an interesting 3D, continuous surface using a multi-octave noise algorithm.
