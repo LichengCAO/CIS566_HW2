@@ -15,9 +15,10 @@ import { mode } from '../webpack.config';
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
-  GUIcolor:[0, 128, 255,1],
-  GUIworley0: 0,
-  GUIworley1: 1,
+  GUIcolor:[219, 85, 21,1],
+  GUIcolor2:[0, 0, 0,1],
+  Float0: 0.5,
+  Float1: 0.5,
 };
 
 let icosphere: Icosphere;
@@ -25,6 +26,7 @@ let square: Square;
 let cube: Cube;
 let prevTesselations: number = 5;
 let color: vec4;
+let color2: vec4;
 let date: Date;
 
 function loadScene() {
@@ -40,12 +42,16 @@ function loadGUI(){
     // Add controls to the gui
     const gui = new DAT.GUI();
     gui.add(controls, 'tesselations', 0, 8).step(1);
-    color = vec4.fromValues(1,1,1,1);
-    gui.addColor(controls,"GUIcolor").name("cube color").onChange((value)=>{
+    color = vec4.fromValues(0.86,0.33,0.08,1);
+    gui.addColor(controls,"GUIcolor").name("base color").onChange((value)=>{
       color = vec4.fromValues(value[0]/255.0,value[1]/255.0,value[2]/255.0,1);
     });
-    gui.add(controls,"GUIworley0",0.0,1.0).step(0.1);
-    gui.add(controls,"GUIworley1",0.0,1.0).step(0.1);
+    color2 = vec4.fromValues(0,0,0,1);
+    gui.addColor(controls,"GUIcolor2").name("mix color").onChange((value)=>{
+      color2 = vec4.fromValues(value[0]/255.0,value[1]/255.0,value[2]/255.0,1);
+    });
+    gui.add(controls,"Float0",0.0,1.0).step(0.1);
+    gui.add(controls,"Float1",0.0,1.0).step(0.1);
 }
 
 function main() {
@@ -81,20 +87,17 @@ function main() {
     new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
   ]);
-  const worley = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/worley-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/worley-frag.glsl')),
-  ]);
   const bgRender = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
-  worley.addUnif("u_worley0");
-  worley.addUnif("u_worley1");
-  worley.addUnif("u_time");
   lambert.addUnif("u_time");
+  lambert.addUnif("u_Color2");
+  lambert.addUnif("u_lowAmp");
+  lambert.addUnif("u_highAmp");
   bgRender.addUnif("u_time");
   bgRender.addUnif("u_Dimensions");
+  bgRender.addUnif("u_cameraPos");
 
 
   // This function will be called every frame
@@ -111,31 +114,22 @@ function main() {
       icosphere.create();
     }
     lambert.setGeometryColor(color);
-    worley.setGeometryColor(color);
-    worley.setUnifFloat("u_worley0",controls.GUIworley0);
-    worley.setUnifFloat("u_worley1",controls.GUIworley1);
     let time = Date.now()%2000000/1000.0;
-    worley.setUnifFloat("u_time",time);
     lambert.setUnifFloat("u_time",time);
+    lambert.setUnifVec4("u_Color2",color2);
+    lambert.setUnifFloat("u_highAmp",controls.Float0);
+    lambert.setUnifFloat("u_lowAmp",controls.Float1);
+    bgRender.setGeometryColor(color);
     bgRender.setUnifFloat("u_time",time);
     bgRender.setUnifVec2("u_Dimensions",vec2.fromValues(window.innerWidth,window.innerHeight));
+    bgRender.setUnifVec3("u_cameraPos",camera.controls.eye);
     let model = mat4.create();
     mat4.identity(model);
-    model[0] = 0.6;
-    model[5] = 0.6;
-    model[10] = 0.6;
-    lambert.setModelMatrix(model);
-    
-    model[14] = 1.5 * Math.sin(time);
-    model[13] = 0
-    model[12] = 1.5 * Math.cos(time);
 
-    worley.setModelMatrix(model);
+    lambert.setModelMatrix(model);
+
     //render
 
-    // gl.cullFace(gl.FRONT);
-    // gl.enable(gl.BLEND);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.depthMask(false);
     renderer.render(camera,bgRender,[
       square,
@@ -144,7 +138,6 @@ function main() {
     renderer.render(camera, lambert, [
       icosphere,
     ]);
-    
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

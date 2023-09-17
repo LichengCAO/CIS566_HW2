@@ -12,6 +12,7 @@
 precision highp float;
 
 uniform vec4 u_Color; // The color with which to render this instance of geometry.
+uniform vec4 u_Color2;
 uniform float u_time;
 uniform mat4 u_Model;
 // These are the interpolated values out of the rasterizer, so you can't know
@@ -85,5 +86,8 @@ void main()
 
 
         // Compute final shaded color
-        out_Col = vec4((diffuseColor.rgb - 0.8*vec3(fs_Bump-0.1) + vec3(fbm3d(fs_Nor.xyz))), 1.f);
+        float u = 0.8*(fs_Bump-0.1) - fbm3d(fs_Nor.xyz);
+        vec3 color = mix(diffuseColor.rgb,u_Color2.xyz,u);
+        color = floor(color * 4.f)/3.;
+        out_Col = vec4(color, 1.f);
 }

@@ -1,4 +1,4 @@
-import {vec4, mat4,vec2} from 'gl-matrix';
+import {vec4, mat4,vec3,vec2} from 'gl-matrix';
 import Drawable from './Drawable';
 import {gl} from '../../globals';
 
@@ -77,6 +77,14 @@ class ShaderProgram {
     if(this.unifMap.has(name)){
       let loc = this.unifMap.get(name);
       if(loc!=-1)gl.uniform4fv(loc,v);
+    }
+  }
+
+  setUnifVec3(name:string, v:vec3){
+    this.use();
+    if(this.unifMap.has(name)){
+      let loc = this.unifMap.get(name);
+      if(loc!=-1)gl.uniform3fv(loc,v);
     }
   }
 

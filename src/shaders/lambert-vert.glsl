@@ -20,6 +20,9 @@ uniform mat4 u_ViewProj;    // The matrix that defines the camera's transformati
                             // but in HW3 you'll have to generate one yourself
 uniform float u_time;
 
+uniform float u_lowAmp;
+uniform float u_highAmp;
+
 in vec4 vs_Pos;             // The array of vertex positions passed to the shader
 
 in vec4 vs_Nor;             // The array of vertex normals passed to the shader
@@ -35,16 +38,10 @@ out float fs_Bump;
 const vec4 lightPos = vec4(5, 5, 3, 1); //The position of our virtual light, which is used to compute the shading of
                                         //the geometry in the fragment shader.
 
-vec2 hash( vec2 p )
-{
-	p = vec2( dot(p,vec2(127.1,311.7)),
-			 dot(p,vec2(269.5,183.3)) );
-	return -1.0 + 2.0*fract(sin(p)*43758.5453123);
-}
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+vec4 permute(vec4 x) { return mod289(((x*34.0) +1.0)*x); }
 vec4 taylorInvSqrt(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
 
 float snoise(vec3 v)
@@ -98,55 +95,6 @@ float snoise(vec3 v)
 	return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
 }
 
-float Turbulence(vec3 position, float minFreq, float maxFreq, float qWidth)
-{
-	float value = 0.0;
-	float cutoff = clamp(0.5/qWidth, 0.0, maxFreq);
-	float fade;
-	float fOut = minFreq;
-	for(int i=1 ; i>=0 ; i--)
-	{
-		if(fOut >= 0.5 * cutoff) break;
-		fOut *= 2.0;
-		value += abs(snoise(position * fOut))/fOut;
-	}
-	fade = clamp(2.0 * (cutoff-fOut)/cutoff, 0.0, 1.0);
-	value += fade * abs(snoise(position * fOut))/fOut;
-	return 1.0-value;
-}
-
-
-float noise( in vec2 p )
-{
-	const float K1 = 0.366025404; // (sqrt(3)-1)/2;
-	const float K2 = 0.211324865; // (3-sqrt(3))/6;
-	
-	vec2 i = floor( p + (p.x+p.y)*K1 );
-	
-	vec2 a = p - i + (i.x+i.y)*K2;
-	vec2 o = (a.x>a.y) ? vec2(1.0,0.0) : vec2(0.0,1.0);
-	vec2 b = a - o + K2;
-	vec2 c = a - 1.0 + 2.0*K2;
-	
-	vec3 h = max( 0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
-	
-	vec3 n = h*h*h*h*vec3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
-	
-	return dot( n, vec3(70.0) );
-}
-
-float fbm(vec2 uv)
-{
-	float f;
-	mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
-	f  = 0.5000*noise( uv ); uv = m*uv;
-	f += 0.2500*noise( uv ); uv = m*uv;
-	f += 0.1250*noise( uv ); uv = m*uv;
-	f += 0.0625*noise( uv ); uv = m*uv;
-	f = 0.5 + 0.5*f;
-	return f;
-}
-
 float fbm3d(vec3 xyz){
     float f;
    	f  = 0.5000*snoise( xyz );
@@ -155,6 +103,22 @@ float fbm3d(vec3 xyz){
 	f += 0.0625*snoise( xyz );
 	f = 0.5 + 0.5*f;
 	return f;
+}
+
+vec3 random3( vec3 p ) {
+ return fract(
+    sin(
+        vec3(
+            dot(p.xy, vec2(127.1, 311.7)),
+            dot(p.yz, vec2(269.5,183.3)),
+            dot(p.zx, vec2(20.1 ,123.3))
+            )
+        )* 43758.5453
+ );
+}
+
+float square_wave(float x,float freq){
+	return float(abs(int(floor(x*freq))%2));
 }
 
 void main()
@@ -170,7 +134,8 @@ void main()
 
     vec4 fs_Pos = vs_Pos;
     
-    fs_Bump = fbm3d(fs_Nor.xyz + vec3(0,u_time,0));
+	//tool4
+    fs_Bump = square_wave(random3(fs_Nor.xyz + vec3(0,u_time,0)).x,2.)*u_highAmp + 4.*fbm3d(fs_Nor.xyz + vec3(0,u_time,0))*u_lowAmp;
     fs_Pos += fs_Nor * 0.1 * fs_Bump;
 
     vec4 modelposition = u_Model * fs_Pos;   // Temporarily store the transformed vertex positions for use below

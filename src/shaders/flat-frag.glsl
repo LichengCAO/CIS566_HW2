@@ -1,15 +1,16 @@
 #version 300 es
 precision highp float;
 
-uniform vec3 u_Eye, u_Ref, u_Up;
+uniform vec3 u_cameraPos;
 uniform vec2 u_Dimensions;
 uniform float u_time;
+uniform vec4 u_Color;
 
 in vec2 fs_Pos;
 out vec4 out_Col;
 
 
-
+//https://www.shadertoy.com/view/lsf3RH
 float snoise(vec3 uv, float res)
 {
 	const vec3 s = vec3(1e0, 1e2, 1e3);
@@ -42,7 +43,7 @@ float parabola(float x, float k){
 	return pow(4.*x*(1.-x),k);
 }
 
-vec3 flame(in vec2 ndc_xy ) 
+float flame(in vec2 ndc_xy ) 
 {
 	vec2 p = ndc_xy;
 	p.x *= u_Dimensions.x/u_Dimensions.y;
@@ -55,7 +56,7 @@ vec3 flame(in vec2 ndc_xy )
 	float color  = 1.0 - 1.5*radius;
 
 	vec3 coord = vec3(atan(p.x,p.y)/6.2832, radius*2., .0);
-	vec3 shiftCoord = coord + vec3(0.,-u_time*0.05, 0.);
+	vec3 shiftCoord = coord + vec3(0.,-u_time*0.5, 0.);
 	float anotherSnoise = snoise(coord + shiftCoord,15.) + 1.;
 	for(int i = 1; i <= 7; i++)
 	{
@@ -64,23 +65,22 @@ vec3 flame(in vec2 ndc_xy )
 	}
 	//tool2
 	color = impulse(1.,color);
-	vec3 fragColor = clamp(vec3( color, pow(max(color,0.),2.)*0.4, pow(max(color,0.),3.)*0.15),vec3(0.),vec3(1.));
-  	fragColor*=fragColor;
-	return clamp(fragColor,vec3(0.),vec3(1.));
+	return pow(max(color,0.),2.);
 }
 
-vec3 glow(in vec2 ndc_xy){
+
+float glow(in vec2 ndc_xy){
 	vec2 p = ndc_xy;
+	//https://www.shadertoy.com/view/4dXGR4
 	p.x *= (u_Dimensions.x/u_Dimensions.y);
 	float radius = length(p)*.5;
 	radius = clamp(radius+0.5,0.,1.);
 	//tool3
-	float color = floor(parabola(radius,0.6)*6.)/6.;
-	return vec3( 0.8, 0.65, 0.3 )*color;
+	return floor(parabola(radius,0.6)*6.)/5.;
 }
 
 void main() {
-  vec3 color = flame(fs_Pos);
-  color += glow(fs_Pos)*.4;
-  out_Col = vec4(color,1.);
+	float jitter = length(u_cameraPos) * 0.2;//to make the flame fit the fireball
+	vec3 color = u_Color.xyz * (flame(fs_Pos* jitter)*0.8 + glow(fs_Pos*jitter*1.2)*.4);
+	out_Col = vec4(color,1.);
 }
