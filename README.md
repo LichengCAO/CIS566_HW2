@@ -2,8 +2,9 @@
 
 ## Result
 
-![lavaball](https://github.com/LichengCAO/CIS566_HW2/assets/81556019/ffb28235-abbb-4389-ab05-d486d4a1a356)
-live demo: https://lichengcao.github.io/CIS566_HW2/
+![lavaball](https://github.com/LichengCAO/CIS566_HW2/assets/81556019/5cb776ba-f088-4130-8965-c981aa71dea0)
+
+  live demo: https://lichengcao.github.io/CIS566_HW2/
 
 ## Objective
 
